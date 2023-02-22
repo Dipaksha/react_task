@@ -7,18 +7,28 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import { Container } from "@mui/system";
+import { Container,  styled, ThemeProvider } from "@mui/system";
+import { Grid } from "@mui/material";
 
 
 function App() {
-  const [product, setProductData] = useState([]);
-  const [inputDiscount,setInputDiscount]=useState()
-  const [discountPrice , setDiscountPrice] = useState();
-
+  
 
 const theme = useTheme();
+const Item = styled(Paper)(({ theme }) => ({
+  ...theme.typography.body2,
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+  height: 60,
+  lineHeight: '60px',
+}));
   const [activeStep, setActiveStep] = React.useState(0);
-  const maxSteps = product.length;
+  const [product, setProductData] = useState([]);
+  const [inputDiscount,setInputDiscount] = useState(product[activeStep]?.discountPercentage ? product[activeStep]?.discountPercentage: undefined)
+
+  const [discountPrice , setDiscountPrice] = useState();
+
+  const maxSteps =product&& product?.length;
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -30,8 +40,9 @@ const theme = useTheme();
 
   useEffect(()=>{
     fetchData();
-    console.log('percentage', product[1]?.price)
   },[])
+
+  
 
 const fetchData = async () => {
     const resp = await fetch("https://dummyjson.com/products");
@@ -39,35 +50,32 @@ const fetchData = async () => {
     setProductData(data.products)
   };
 
+console.log("product",product)
 
 const updatePrice = (e) => {
   setInputDiscount(e.target.value)
 }
 
 const handleChangePrice=(selectedItem)=>{
-  const percentage = ((selectedItem.price) / 100) * inputDiscount;
-  var discountPrice = selectedItem.price-percentage
-   setDiscountPrice(discountPrice)
-  
+
+//   tempArray.map((item)=>{
+// if(selectedItem.id===item.id){
+//   const percentage = ((selectedItem.price) / 100) * inputDiscount;
+//   var discountPrice = selectedItem.price-percentage
+//    setDiscountPrice(discountPrice)
+// }
+//   })
+const percentage = ((selectedItem.price) / 100) * inputDiscount;
+var discountPrice = selectedItem.price-percentage
+ setDiscountPrice(discountPrice)
 }
 
-
+console.log("object",discountPrice)
   return (
     <Container maxWidth="sm">
           <Box sx={{ maxWidth: 400, flexGrow: 1 }}>
           
-      <Paper
-        square
-        elevation={0}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          height: 50,
-          pl: 2,
-          bgcolor: 'background.default',
-        }}
-      >
-      </Paper>
+         
       <Box
                 component="img"
                 sx={{
@@ -81,20 +89,29 @@ const handleChangePrice=(selectedItem)=>{
                 alt={product[activeStep]?.title}>
                   
                 </Box>
-                <Paper
-        square
-        elevation={0}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          height: 50,
-          pl: 2,
-          bgcolor: 'background.default',
-        }}
-      >
-        <Typography>{product[activeStep]?.title+"   "}</Typography>
-        <Typography> Rs{discountPrice?discountPrice:product[activeStep]?.price}</Typography>
-      </Paper>
+                <Grid  >
+          <ThemeProvider theme={theme}>
+            <Box
+              sx={{
+                p: 2,
+                bgcolor: 'background.default',
+                display: 'grid',
+                gridTemplateColumns: { md: '1fr 1fr' },
+                gap: 2,
+              }}
+            >
+               <Item >
+               {product[activeStep]?.title+"   "}
+                      </Item>
+              <Item>
+               Total Price : {product[activeStep]?.price}
+              </Item>
+              <Item>
+              Discount Price: {discountPrice&&discountPrice}
+              </Item>
+            </Box>
+          </ThemeProvider>
+        </Grid>
       <MobileStepper
         variant="text"
         steps={maxSteps}
@@ -125,7 +142,7 @@ const handleChangePrice=(selectedItem)=>{
           </Button>
         }
       />
-      <input type='text' onChange={updatePrice} placeholder={'Enter Discount'}/>
+      <input type='text' value={inputDiscount} onChange={updatePrice} placeholder={'Enter Discount'} defaultValue={product[activeStep]?.discountPercentage}/>
       <input type='submit' onClick={() =>{handleChangePrice(product[activeStep])}}/>
     </Box>
      </Container>
